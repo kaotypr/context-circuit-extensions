@@ -1,0 +1,8 @@
+at=2026-11-11T05:30:00Z role=worker tokens=48210 from=host-result
+at=2026-11-11T05:41:12Z role=x-verifier-checker tokens=not-available from=none
+this line is not an entry
+
+# a comment
+at=2026-11-11T05:52:40Z role=worker tokens=1290 from=host-result
+at=2026-11-11T06:03:00Z role=explorer tokens=12,000 from=host-result
+at=2026-11-11T06:10:00Z role=reviewer tokens=20500 from=host-result

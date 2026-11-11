@@ -1,0 +1,58 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+    tags: ["*/v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  # The oldest CLI every manifest's requires_cli accepts.
+  CLI_VERSION: 2.6.0
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset: linux-amd64.tar.gz
+          - os: macos-latest
+            asset: darwin-arm64.tar.gz
+          - os: windows-latest
+            asset: windows-amd64.zip
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install the Context Circuit CLI
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/cc"
+          mkdir -p "$dir"
+          name="context-circuit-cli-v${CLI_VERSION}-${{ matrix.asset }}"
+          gh release download "cli-v${CLI_VERSION}" --repo kaotypr/context-circuit-source \
+            --pattern "$name" --pattern SHA256SUMS --dir "$dir"
+          cd "$dir"
+          grep -F "./$name" SHA256SUMS > expected
+          if command -v sha256sum >/dev/null; then sha256sum -c expected; else shasum -a 256 -c expected; fi
+          case "$name" in
+          *.zip) unzip -q "$name" ;;
+          *) tar xzf "$name" ;;
+          esac
+          bin="$dir/context-circuit-cli"
+          [ -f "$bin.exe" ] && bin="$bin.exe"
+          echo "CC_CLI=$bin" >> "$GITHUB_ENV"
+      - run: go vet ./...
+      - run: go test -count=1 ./...

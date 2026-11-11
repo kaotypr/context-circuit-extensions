@@ -1,0 +1,23 @@
+id: token-usage
+version: 1.0.0
+name: Token usage
+summary: Records the tokens each dispatched subagent used, per plan, and totals them after implementing.
+members: default-on
+requires_cli: ">=2.6.0"
+settings:
+  folder:
+    summary: Folder for the entries, relative to the workspace root. Default .context-circuit/local/token-usage
+hooks:
+  - at: before plan
+    instructions: instructions/record-dispatch.md
+  - at: before implement
+    instructions: instructions/record-dispatch.md
+  - at: before review
+    instructions: instructions/record-dispatch.md
+  - at: after implement
+    script:
+      run: [sh, scripts/summarize.sh]
+      run_windows: [powershell, -NoProfile, -ExecutionPolicy, Bypass, -File, scripts/summarize.ps1]
+      on_failure: report
+      consent: none
+      timeout: 1m

@@ -1,0 +1,25 @@
+id: verifier
+version: 1.0.0
+name: Verifier
+summary: A read-only role that checks an implementation against its plan.
+members: default-on
+requires_cli: ">=2.6.0"
+hooks: []
+roles:
+  - id: checker
+    description: >-
+      Checks that a worktree's commits deliver its plan's outcome and returns a
+      verdict with findings. Reads only; changes nothing.
+    access: read-only
+    stages: [implement]
+    like: reviewer
+    instructions: roles/checker.md
+    returns: [Verdict, Findings, Not checked]
+overrides:
+  - default: verify-during-execution
+    instructions: overrides/verify-during-execution.md
+    verifier: checker
+  - default: repair-loop
+    instructions: overrides/repair-loop.md
+    verifier: checker
+    rounds: 3
